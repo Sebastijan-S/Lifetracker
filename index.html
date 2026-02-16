@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b0f12" />
+  <title>Daily Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    :root{--bg:#071014;--panel:#0b1116;--muted:#98a0a6;--accent:#00d4ff;--success:#8cff6b}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#030507 0%,#071014 100%);color:#e6eef6;font-family:Inter,system-ui,Segoe UI,Arial}
+    .wrap{max-width:980px;margin:20px auto;padding:18px;}
+    header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+    h1{font-size:1.2rem;margin:0}
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:18px}
+    .panel{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,10,0.6)}
+    .checklist{list-style:none;margin:0;padding:0}
+    .checklist li{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px dashed rgba(255,255,255,0.02)}
+    .checklist input[type="checkbox"]{appearance:none;width:20px;height:20px;border:2px solid var(--accent);border-radius:6px;cursor:pointer;background:transparent;transition:all 0.2s;flex-shrink:0}
+    .checklist input[type="checkbox"]:hover{background:rgba(0,212,255,0.1);transform:scale(1.05)}
+    .checklist input[type="checkbox"]:checked{background:var(--accent);box-shadow:0 0 10px rgba(0,212,255,0.5)}
+    .checklist input[type="checkbox"]:checked::after{content:'✓';color:#00151a;font-weight:bold;display:flex;align-items:center;justify-content:center;height:100%;font-size:14px}
+    .checklist label{cursor:pointer;word-wrap:break-word;word-break:break-word;overflow-wrap:break-word}
+    .progress{height:12px;background:#071219;border-radius:8px;overflow:hidden;margin-top:8px}
+    .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#7effb2);width:0%;transition:width 0.3s}
+    label.small{font-size:0.9rem;color:var(--muted)}
+    input[type="number"],input[type="text"],textarea{width:100%;padding:8px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.02);color:inherit;font-family:inherit;transition:all 0.2s;box-sizing:border-box}
+    input[type="number"]:focus,input[type="text"]:focus,textarea:focus{outline:none;border-color:var(--accent);background:rgba(0,212,255,0.05);box-shadow:0 0 8px rgba(0,212,255,0.2)}
+    input[type="number"]{font-size:1rem}
+    textarea{resize:vertical;min-height:80px;font-size:0.95rem;line-height:1.4}
+    button{background:var(--accent);border:none;color:#00151a;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;transition:all 0.2s}
+    button:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,212,255,0.3)}
+    button:active{transform:translateY(0)}
+    button#clearAllBtn{background:#ff6b6b}
+    button#clearAllBtn:hover{box-shadow:0 4px 12px rgba(255,107,107,0.3)}
+    button#clearLogBtn{background:#ff9f43}
+    button#clearLogBtn:hover{box-shadow:0 4px 12px rgba(255,159,67,0.3)}
+    .banner{display:none;padding:12px;border-radius:8px;background:linear-gradient(90deg,#fffb00,#ffd34a);color:#001;text-align:center;margin-top:12px;font-weight:700;animation:pulse 0.5s}
+    @keyframes pulse{0%{transform:scale(0.95);opacity:0.8}100%{transform:scale(1);opacity:1}}
+    @media (max-width:880px){.grid{grid-template-columns:1fr}.panel{margin-bottom:12px}header{flex-direction:column;align-items:flex-start}h1{width:100%}}
+    @media (max-width:600px){.wrap{padding:12px;margin:10px auto}.panel{padding:10px}button{padding:10px;width:100%;margin-bottom:8px}input,textarea{padding:10px;font-size:16px}}
+    @media (max-width:480px){h1{font-size:1rem}h2,h3{font-size:0.95rem}.wrap{padding:12px;margin:8px auto}.grid{gap:12px}.panel{padding:10px;margin-bottom:10px}button{padding:8px 10px;width:100%;margin-bottom:6px;font-size:0.95rem}.checklist input[type="checkbox"]{width:18px;height:18px}.checklist input[type="checkbox"]:checked::after{font-size:12px}input[type="number"],input[type="text"],textarea{padding:8px;font-size:14px}textarea{min-height:60px}label.small{font-size:0.85rem}#splitsChart{height:100px!important}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Daily Tracker</h1>
+    </header>
+
+    <div class="grid">
+      <main class="panel">
+        <section>
+          <h2 style="margin:0 0 8px 0">Daily Checklist</h2>
+          <ul class="checklist" id="checklist"></ul>
+          <div class="progress" aria-hidden><i id="progressFill"></i></div>
+          <div id="rewardBanner" class="banner">SYSTEM CLEAR: 90 MINS GAMING AUTHORIZED.</div>
+        </section>
+
+        <section style="margin-top:14px">
+          <h2 style="margin:0 0 8px 0">Flexibility Tracker</h2>
+          <div style="margin-bottom:8px">
+            <label class="small">Flexibility (cm)</label><input id="flexInput" type="number" min="0" step="0.1">
+          </div>
+          <div style="display:flex;gap:8px"><button id="saveFlex">Save</button><div style="flex:1"></div></div>
+          <canvas id="splitsChart" height="140" style="width:100%;margin-top:12px"></canvas>
+        </section>
+      </main>
+
+      <aside class="panel">
+        <section>
+          <h3 style="margin:0 0 8px 0">Daily revenue</h3>
+          <label class="small">Today's revenue</label>
+          <input id="revenueInput" type="number" min="0" step="0.01" placeholder="0.00">
+          <div style="display:flex;gap:8px;margin-top:8px"><button id="saveRevenue">Save</button><div style="flex:1"></div></div>
+          <p style="margin-top:10px;color:var(--muted)">Weekly total: <strong id="weeklyTotal">0</strong> dinars</p>
+        </section>
+        <section style="margin-top:14px">
+          <h3 style="margin:0 0 8px 0">Quick Notes</h3>
+          <div style="display:flex;gap:8px;margin-bottom:8px"><input id="noteInput" type="text" placeholder="Add a note..."><button id="addNoteBtn" style="padding:8px 12px;flex-shrink:0;margin-bottom:0">Add</button></div>
+          <ul id="notesList" class="checklist" style="max-height:200px;overflow-y:auto"></ul>
+        </section>
+        <section style="margin-top:14px">
+          <h3 style="margin:0 0 8px 0">Quick Controls</h3>
+          <button id="exportBtn" style="width:100%">Export Data</button>
+          <button id="importBtn" style="width:100%;margin-top:8px">Import Data</button>
+          <button id="clearAllBtn" style="width:100%;margin-top:8px;background:#ff6b6b">Clear All</button>
+          <input type="file" id="importFile" accept=".csv" style="display:none">
+        </section>
+      </aside>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js" defer></script>
+  <script>
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  </script>
+</body>
+</html>
